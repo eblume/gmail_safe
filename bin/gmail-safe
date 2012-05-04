@@ -181,7 +181,7 @@ var configure_local_env = function(opts) {
   });
 
   // Start up a redis client
-  db = redis_client.createClient(36127,"127.0.0.1",);
+  db = redis_client.createClient(36127,"127.0.0.1");
 
   // Create a blank gmail object
   gm = new gmi();
