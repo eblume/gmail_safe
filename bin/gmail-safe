@@ -108,8 +108,14 @@ mainloop.on('imap_connect', function() {
   fetcher.on('fetched',function(msg){
     var emlfile = path.join(opts.directory,msg.id + ".eml");
     fs.writeFile(emlfile,emlfile.eml,"utf8");
-    db.hmset(msg.id,msg); // For now, we store an entire copy of
-                          // the email in redis as well.
+
+    db.HMSET(msg.id,{
+      "id": msg.id,
+      "thread": msg.thread,
+      "date": msg.date,
+      "labels": msg.labels
+      // Skip msg.eml to avoid storing the entire email (for now anyway)
+    });
   });
 });
 
