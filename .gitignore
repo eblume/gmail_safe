@@ -4,3 +4,6 @@
 # Node-specific things
 node_modules/*
 npm-debug.log
+
+# I do some testing using a folder called 'tmp'
+tmp/
