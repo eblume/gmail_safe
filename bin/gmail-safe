@@ -93,7 +93,9 @@ mainloop.once('main',function() {
   // We now have the 'db' redis client, 'work_path', 'gm', and others.
 
   // Connect to the gmail server
+  console.log("Connecting to Google Mail...");
   gm.connect(opts.username,opts.password,function() {
+    console.log("Connected.");
     mainloop.emit('imap_connect');
   });
 });
@@ -107,15 +109,20 @@ mainloop.on('imap_connect', function() {
   });
   fetcher.on('fetched',function(msg){
     var emlfile = path.join(opts.directory,msg.id + ".eml");
+    console.log("Writing",emlfile);
     fs.writeFile(emlfile,emlfile.eml,"utf8");
 
-    db.HMSET(msg.id,{
+    var storeobj = {
       "id": msg.id,
       "thread": msg.thread,
       "date": msg.date,
       "labels": msg.labels
       // Skip msg.eml to avoid storing the entire email (for now anyway)
-    });
+    };
+
+    // I would like to use db.HMSET, but it is being very weird.
+    // This needs further investigating. For now, just JSONify it.
+    db.HMSET(msg.id,JSON.stringify(storeobj),die);
   });
 });
 
@@ -187,6 +194,7 @@ var configure_local_env = function(opts) {
   });
 
   // Start up a redis client
+  console.log("Starting redis cache...");
   db = redis_client.createClient(36127,"127.0.0.1");
 
   // Create a blank gmail object
