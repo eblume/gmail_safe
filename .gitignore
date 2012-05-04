@@ -1,0 +1,6 @@
+# Random OS/vendor files
+.DS_Store
+
+# Node-specific things
+node_modules/*
+npm-debug.log
