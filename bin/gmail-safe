@@ -133,7 +133,6 @@ var configure_local_env = function(opts) {
   var meta_path = path.join(work_path,"meta/");
   maybe_create_path(meta_path);
   var conf_path = path.join(meta_path,"store.conf");
-  var db_path = path.join(meta_path,"store.redis");
 
   var bindaddr = "127.0.0.1";
   var port = 36127; // Chosen totally at random. Should become an option.
@@ -149,13 +148,14 @@ var configure_local_env = function(opts) {
       "bind": bindaddr,
       "port": port.toString(),
       "timeout":"20", // We want it to fail fast, rather than linger.
-      "dbfilename": db_path,
+      "dbfilename": "store.redis",
       "dir": meta_path,
       "loglevel": "notice",
       "logfile": "stdout",
       "databases": "1",
       "maxclients": "1",
-      "maxmemory": Math.pow(2,17).toString() // 128 MB
+      //"maxmemory": "512MB", // hasn't been working well for me.
+      "save 15": "1",
     }
 
     // In Python (my nominal language), I would do this using
