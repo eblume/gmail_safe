@@ -122,7 +122,7 @@ mainloop.on('imap_connect', function() {
 
     // I would like to use db.HMSET, but it is being very weird.
     // This needs further investigating. For now, just JSONify it.
-    db.HMSET(msg.id,JSON.stringify(storeobj),die);
+    db.set(msg.id,JSON.stringify(storeobj),die);
   });
 });
 
