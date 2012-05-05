@@ -25,6 +25,7 @@ About
 
  - Decently fast
  - Supported incremental backup
+ - Could be run in the background (eg. from a `cron` script)
  - Saved thread information (Google Mail 'conversations')
  - Saved Google Mail labels
  - and Saved attachments & alternate bodies in the standard email format
