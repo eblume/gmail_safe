@@ -1,10 +1,10 @@
 {
   "name": "gmail-safe",
   "preferGlobal": "true",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Erich Blume <blume.erich@gmail.com>",
   "description": "Intelligent backup client for GMail.",
-  "engines": { "node" : "0.6.x" },
+  "engines": { "node" : ">=0.4" },
   "keywords": ["imap","gmail","google","email","backup"],
   "maintainers": [{
     "name": "Erich Blume",
