@@ -39,14 +39,14 @@ In that regard, `gmail-safe`:
  - Is designed from the ground up to be run in the background, eg. as a background (cron) job. (Ok, in this very early release this still needs a tiny bit of work, but it's going to get there very soon.)
  - Supports Google Application-Specific Passwords so people with two-factor authentication can still use it. (This comes *gratis*, it just replaces your normal password.)
 
- Installation
- ------------
+Installation
+------------
 
- Currently `gmail-safe` has three external dependencies you will need to install yourself:
+Currently `gmail-safe` has three external dependencies you will need to install yourself:
 
-  - [Redis 2.4 or higher](http://redis.io/download)
-  - [Node.js 0.6.x](http://nodejs.org/)
-  - [NPM](http://npmjs.org/)
+ - [Redis 2.4 or higher](http://redis.io/download)
+ - [Node.js 0.6.x](http://nodejs.org/)
+ - [NPM](http://npmjs.org/)
 
 If there is much demand I will probably make available a more complete guide for installing these dependencies - but really, it isn't very hard.
 
@@ -61,4 +61,4 @@ Plannead Features
  - Metadata transfer/import
  - Configuration file so you don't need to have your password on the command line
 
- Most of these features are fairly simple to implement - mostly I just need motivation. So if you want this feature (or any other!) just file an issue on github.
+Most of these features are fairly simple to implement - mostly I just need motivation. So if you want this feature (or any other!) just file an issue on github.
