@@ -1,13 +1,16 @@
-== gmail-safe
+gmail-safe
+==========
 
 Easy commandline-driven backups of your Google Mail data.
 
-=== Quick Start
+Quick Start
+-----------
 
     $ npm install -g gmail-safe
     $ gmail_safe ./path/to/store -u USERNAME -p PASSWORD
 
-=== Legal Boilerplate
+Legal Boilerplate
+-----------------
 
 This project is Copyright (c) 2012 Erich Blume &lt;blume.erich@gmail.com&gt;.
 
@@ -15,7 +18,8 @@ Google and Google Mail are trademarks owned by Google. I am not Google. I do not
 
 This project is licensed under the MIT license, which is a permissive open-source license. See the LICENSE file for the full terms of the copyright. If this project didn't come with a LICENSE file, then someone messed up (probably me) and you can get a copy at [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php).
 
-=== About
+About
+-----
 
 `gmail-safe` was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that were:
 
@@ -34,7 +38,8 @@ In that regard, `gmail-safe`:
  - Is designed from the ground up to be run in the background, eg. as a background (cron) job. (Ok, in this very early release this still needs a tiny bit of work, but it's going to get there very soon.)
  - Supports Google Application-Specific Passwords so people with two-factor authentication can still use it. (This comes *gratis*, it just replaces your normal password.)
 
- === Installation
+ Installation
+ ------------
 
  Currently `gmail-safe` has three external dependencies you will need to install yourself:
 
@@ -46,7 +51,8 @@ If there is much demand I will probably make available a more complete guide for
 
 From there, just follow the quick start guide. :)
 
-=== Plannead Features
+Plannead Features
+-----------------
 
  - Better backgrounding support (supress stdout & progress bar)
  - Asynchronous simultaneous email fetching - not sure if IMAP will support this
