@@ -2,6 +2,7 @@
 
 
 var gmi = require('gmail').GMailInterface,
+  ProgressBar = require('progress');
   spawn = require('child_process').spawn,
   redis_client = require('redis'),
   path = require('path'),
@@ -104,13 +105,24 @@ mainloop.once('main',function() {
 // imap_connect - when the 'gm' interface connects to the server
 mainloop.on('imap_connect', function() {
   var fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
+  var bar;
+
   fetcher.once('end',function(){
+    console.log();
     mainloop.emit('close');
   });
+  fetcher.on('fetching',function(ids) {
+    console.log("Fetching",ids.length,"emails (this may take some time)...");
+    console.log();
+    bar = new ProgressBar('[:bar] :percent (:elapsed) :eta', {
+      total: ids.length,
+      width: 40,
+    });
+  });
   fetcher.on('fetched',function(msg){
+    bar.tick(1);
     var emlfile = path.join(opts.directory,msg.id + ".eml");
-    console.log("Writing",emlfile);
-    fs.writeFile(emlfile,emlfile.eml,"utf8");
+    fs.writeFile(emlfile,emlfile.eml,"utf8",die);
 
     var storeobj = {
       "id": msg.id,
@@ -150,7 +162,7 @@ var configure_local_env = function(opts) {
   var bindaddr = "127.0.0.1";
   var port = 36127; // Chosen totally at random. Should become an option.
 
-  if (!path.existsSync(conf_path)) {
+  if (!path.existsSync(meta_path)) {
     // This is a very lazy config representation - the config file will
     // be generated simply by writing one 'option' per line, in the format
     // 'key value' - that is the key, a space, and the value.

@@ -1,7 +1,7 @@
 {
   "name": "gmail-safe",
   "preferGlobal": "true",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Erich Blume <blume.erich@gmail.com>",
   "description": "Intelligent backup client for GMail.",
   "engines": { "node" : "0.6.x" },
@@ -14,11 +14,13 @@
   "bin":"./bin/gmail-safe",
   "main":"./bin/gmail-safe",
   "dependencies": {
-    "gmail": "0.2.x",
+    "gmail": "0.3.x",
     "nomnom": "1.5.x",
     "node-fs": "0.1.x",
+    "hiredis": "0.1.x",
     "redis": "0.7.x",
-    "async": "0.1.x"
+    "async": "0.1.x",
+    "progress2": "0.1.x"
   },
   "devDependencies": {
     "mocha": "1.0.x",
