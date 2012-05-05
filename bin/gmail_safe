@@ -2,7 +2,7 @@
 
 
 var gmi = require('gmail').GMailInterface,
-  ProgressBar = require('progress');
+  ProgressBar = require('progress2');
   spawn = require('child_process').spawn,
   redis_client = require('redis'),
   path = require('path'),
@@ -65,6 +65,7 @@ process.on('uncaughtException', function(err) {
 // be asynchronous. (For one, there might well not be a next tick.)
 mainloop.once('exit',function(err) {
   // Cleanup
+  console.log("Closing connections...");
   redis.kill(); // sends SIGTERM
   db.end(); // Abruptly ends client, even mid-stream. Totally OK, because
             // the server just died (maybe).
@@ -114,7 +115,7 @@ mainloop.on('imap_connect', function() {
   fetcher.on('fetching',function(ids) {
     console.log("Fetching",ids.length,"emails (this may take some time)...");
     console.log();
-    bar = new ProgressBar('[:bar] :percent (:elapsed) :eta', {
+    bar = new ProgressBar('[:bar] :percent (:elapsed/:finish) :eta', {
       total: ids.length,
       width: 40,
     });
@@ -143,6 +144,7 @@ mainloop.on('imap_connect', function() {
 mainloop.on('close',function() {
   db.quit();
   gm.logout(die);
+  mainloop.emit('exit');
 })
 
 
@@ -162,7 +164,7 @@ var configure_local_env = function(opts) {
   var bindaddr = "127.0.0.1";
   var port = 36127; // Chosen totally at random. Should become an option.
 
-  if (!path.existsSync(meta_path)) {
+  if (!path.existsSync(conf_path)) {
     // This is a very lazy config representation - the config file will
     // be generated simply by writing one 'option' per line, in the format
     // 'key value' - that is the key, a space, and the value.

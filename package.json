@@ -19,12 +19,9 @@
     "node-fs": "0.1.x",
     "hiredis": "0.1.x",
     "redis": "0.7.x",
-    "async": "0.1.x",
     "progress2": "0.1.x"
   },
   "devDependencies": {
-    "mocha": "1.0.x",
-    "should": "0.6.x"
   },
   "scripts": {
     "test": "mocha",
