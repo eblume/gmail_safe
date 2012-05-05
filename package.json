@@ -1,7 +1,7 @@
 {
   "name": "gmail-safe",
   "preferGlobal": "true",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Erich Blume <blume.erich@gmail.com>",
   "description": "Intelligent backup client for GMail.",
   "engines": { "node" : ">=0.4.0" },
@@ -11,8 +11,10 @@
     "email": "blume.erich@gmail.com",
     "web": "github.com/eblume"
   }],
-  "bin":"./bin/gmail-safe",
-  "main":"./bin/gmail-safe",
+  "bin": {
+    "gmail_safe": "./bin/gmail_safe.js"
+  },
+  "main":"./bin/gmail_safe.js",
   "dependencies": {
     "gmail": "0.3.x",
     "nomnom": "1.5.x",
@@ -24,9 +26,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "test": "mocha",
-    "guard": "mocha -G -w",
-    "start": "node ./bin/gmail-safe"
+    "start": "node ./bin/gmail_safe.js"
   },
   "license":"MIT"
 }
