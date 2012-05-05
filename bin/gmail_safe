@@ -123,7 +123,7 @@ mainloop.on('imap_connect', function() {
   fetcher.on('fetched',function(msg){
     bar.tick(1);
     var emlfile = path.join(opts.directory,msg.id + ".eml");
-    fs.writeFile(emlfile,emlfile.eml,"utf8",die);
+    fs.writeFile(emlfile,msg.eml,"utf8",die);
 
     var storeobj = {
       "id": msg.id,
