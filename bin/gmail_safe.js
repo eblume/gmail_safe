@@ -22,7 +22,6 @@ var opts = require('nomnom')
     flag: false,
     abbr: 'u',
     help: "Username, an email ending in @gmail.com",
-    required: true,
     type: "string",
     metavar: "USERNAME"
   })
@@ -30,7 +29,6 @@ var opts = require('nomnom')
     flag: false,
     abbr: 'p',
     help: "Password, or an application-specific password.",
-    required: true,
     type: "string",
     metavar: "PASSWORD"
   })
@@ -39,7 +37,25 @@ var opts = require('nomnom')
     abbr: 'i',
     help: "Only download emails which have not already been downloaded."
   })
+  .option('config', {
+    abbr: 'c',
+    default: false,
+    help: 'JSON configuration file with the fields "username" and "password"',
+    type: "string",
+    metavar: "FILE"
+  })
   .parse();
+
+
+// Deal with the config file
+if(opts.config) {
+  var conf = JSON.parse(fs.readFileSync(opts.config,'utf8'));
+  opts.username = opts.username || conf.username;
+  opts.password = opts.password || conf.password;
+} else if (!opts.username || !opts.password) {
+  console.log("Error: must specify either --config or both --username and --password");
+  process.exit(1);
+}
 
 
 var mainloop = new EE();

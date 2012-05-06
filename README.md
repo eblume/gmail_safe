@@ -65,11 +65,22 @@ FAQ / Troubleshooting
      although you may need to delete the emails too just to be sure. Your
      call.
 
+- Q: **How can I run `gmail_safe` from a cron job?**
+
+  A: `gmail_safe` can be very easily stored as a cron job using the `-i` and
+     `-c FILE` options, as well as redirecting the output to /dev/null. (Better
+     logging is a planned feature.) Writing the cron job is beyond the scope
+     of this README, but it isn't hard to do. Here is an example config file:
+
+         {
+            "username": "your_username@gmail.com",
+            "password": "your_password_OR_app_specific_passphrase"
+         }
+
 Plannead Features
 -----------------
 
  - Better backgrounding support (supress stdout & progress bar)
  - Metadata transfer/import
- - Configuration file so you don't need to have your password on the command line
 
 Most of these features are fairly simple to implement - mostly I just need motivation. So if you want this feature (or any other!) just file an issue on github.
