@@ -63,7 +63,7 @@ FAQ / Troubleshooting
             "password": "your_password_OR_app_specific_passphrase"
          }
 
-Plannead Features
+Planned Features
 -----------------
 
  - Better backgrounding support (supress stdout & progress bar)
