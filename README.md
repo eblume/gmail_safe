@@ -38,7 +38,7 @@ In that regard, `gmail-safe`:
  - Is not CPU or RAM intensive. It can easily run in the background. It will saturate your network connection a bit (but not too baddly) but it uses less than 10% of my CPU and about 100 MB of RAM, even with huge data sets.
  - Supports incremental backup (with --incremental).
  - Saves meta-data like conversations and labels in a secure, local-only redis database. At this time that data just sort of sits there, but eventually I hope to write tools to let you re-import your mail to Google using this database to preserve labels and threads. For now you can be confident that nothing was lost. Labels and threads do NOT appear in downloaded emails directly as those extensions are not part of the email spec.
- - Is designed from the ground up to be run in the background, eg. as a background (cron) job. (Ok, in this very early release this still needs a tiny bit of work, but it's going to get there very soon.)
+ - Is designed from the ground up to be run in the background, eg. as a background (cron) job. (Ok, in this very early release this still needs a tiny bit of work, but it's going to get there very soon. For now, just redirect STDOUT to /dev/null. I'll build better logging soon, let me know if you need it ASAP!)
  - Supports Google Application-Specific Passwords so people with two-factor authentication can still use it. (This comes *gratis* with IMAP, it just replaces your normal password.)
 
 Installation
@@ -70,7 +70,6 @@ Plannead Features
 -----------------
 
  - Better backgrounding support (supress stdout & progress bar)
- - Asynchronous simultaneous email fetching - not sure if IMAP will support this
  - Metadata transfer/import
  - Configuration file so you don't need to have your password on the command line
 
