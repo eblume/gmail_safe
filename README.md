@@ -32,14 +32,14 @@ In that regard, `gmail_safe`:
 Installation
 ------------
 
-Currently `gmail_safe` has three external dependencies you will need to install yourself:
+Currently `gmail_safe` has two external dependencies you will need to install yourself:
 
  - [Node.js 0.6.x](http://nodejs.org/)
  - [Redis 2.4 or higher](http://redis.io/download)
 
 If there is much demand I will probably make available a more complete guide for installing these dependencies - but really, it isn't very hard.
 
-From there, just follow the quick start guide. :)
+From there, just follow the quick start guide.
 
 Note: be sure to install `gmail_safe` using `npm install -g gmail-safe` - without the -g (which tells npm to install the gmail_safe executable globally) or the environment will break and `gmail_safe` will not function. If you know why, please file an issue to help point me in the right direction.
 
