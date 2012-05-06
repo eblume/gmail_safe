@@ -1,8 +1,3 @@
-gmail-safe
-==========
-
-Easy commandline-driven backups of your Google Mail data.
-
 Quick Start
 -----------
 
@@ -11,19 +6,10 @@ Quick Start
 
 The specified directory will be created with the `0770` permission code if it does not already exist, and the database will be initialized if it does not yet exist.
 
-Legal Boilerplate
------------------
-
-This project is Copyright (c) 2012 Erich Blume &lt;blume.erich@gmail.com&gt;.
-
-Google and Google Mail are trademarks owned by Google. I am not Google. I do not own these trademarks. Hopefully everyone understands that this modest little app only serves to increase Google Mail's adoption, by whatever small amount.
-
-This project is licensed under the MIT license, which is a permissive open-source license. See the LICENSE file for the full terms of the copyright. If this project didn't come with a LICENSE file, then someone messed up (probably me) and you can get a copy at [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php).
-
 About
 -----
 
-`gmail-safe` was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that were:
+`gmail_safe` was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that were:
 
  - Decently fast
  - Supported incremental backup
@@ -32,7 +18,7 @@ About
  - Saved Google Mail labels
  - and Saved attachments & alternate bodies in the standard email format
 
-In that regard, `gmail-safe`:
+In that regard, `gmail_safe`:
 
  - Is pretty darn fast. How fast? On my home internet connection, I get about 16 emails per second - and that's including emails that have attachments.
  - Is not CPU or RAM intensive. It can easily run in the background. It will saturate your network connection a bit (but not too baddly) but it uses less than 10% of my CPU and about 100 MB of RAM, even with huge data sets.
@@ -44,7 +30,7 @@ In that regard, `gmail-safe`:
 Installation
 ------------
 
-Currently `gmail-safe` has three external dependencies you will need to install yourself:
+Currently `gmail_safe` has three external dependencies you will need to install yourself:
 
  - [Node.js 0.6.x](http://nodejs.org/)
  - [Redis 2.4 or higher](http://redis.io/download)
@@ -53,7 +39,7 @@ If there is much demand I will probably make available a more complete guide for
 
 From there, just follow the quick start guide. :)
 
-Note: be sure to install `gmail-safe` using `npm install -g gmail-safe` - without the -g (which tells npm to install the gmail_safe executable globally) or the environment will break and `gmail-safe` will not function. If you know why, please file an issue to help point me in the right direction.
+Note: be sure to install `gmail_safe` using `npm install -g gmail-safe` - without the -g (which tells npm to install the gmail_safe executable globally) or the environment will break and `gmail_safe` will not function. If you know why, please file an issue to help point me in the right direction.
 
 FAQ / Troubleshooting
 ---------------------
@@ -84,3 +70,12 @@ Plannead Features
  - Metadata transfer/import
 
 Most of these features are fairly simple to implement - mostly I just need motivation. So if you want this feature (or any other!) just file an issue on github.
+
+Legal Boilerplate
+-----------------
+
+This project is Copyright (c) 2012 Erich Blume &lt;blume.erich@gmail.com&gt;.
+
+Google and Google Mail are trademarks owned by Google. I am not Google. I do not own these trademarks. Hopefully everyone understands that this modest little app only serves to increase Google Mail's adoption, by whatever small amount.
+
+This project is licensed under the MIT license, which is a permissive open-source license. See the LICENSE file for the full terms of the copyright. If this project didn't come with a LICENSE file, then someone messed up (probably me) and you can get a copy at [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php).
