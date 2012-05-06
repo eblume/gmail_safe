@@ -60,6 +60,7 @@ FAQ / Troubleshooting
 ---------------------
 
 - Q: **Help! I accidentally deleted a file / broke the database / etc.!**
+
   A: No problem! First, delete the `meta` folder from within the download
      directory. Then, re-run `gmail_safe`. It should fix itself just fine,
      although you may need to delete the emails too just to be sure. Your
