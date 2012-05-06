@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>gmail_safe by eblume</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>gmail_safe</h1>
+        <h2>Easy, fast, lossless GMail backup.</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/eblume/gmail_safe/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/eblume/gmail_safe/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/eblume/gmail_safe" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h2>Quick Start</h2>
+
+<p>First, be sure to install <a href="http://nodejs.org/">node</a> and <a href="http://redis.io/download">redis</a>. Once that's done:</p>
+
+<pre><code>$ npm install -g gmail-safe
+$ gmail_safe ./download/directory -u USERNAME -p PASSWORD --incremental
+</code></pre>
+
+<p>The specified directory will be created with the <code>0770</code> permission code if it does not already exist, and the database will be initialized if it does not yet exist.</p>
+
+<h2>About</h2>
+
+<p>gmail_safe was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that met all my criteria:</p>
+
+<ul>
+<li>Run decently fast</li>
+<li>Support incremental backup</li>
+<li>Can be run in the background (eg. from a <code>cron</code> script)</li>
+<li>Save thread information (Google Mail 'conversations')</li>
+<li>Save Google Mail labels</li>
+<li>and Save attachments &amp; alternate bodies in the standard email format</li>
+</ul><p>gmail_safe does all that, and it does it fast (<strong>I get about 20 emails per second</strong>) and without using much CPU or RAM. Perfect for a cron job.</p>
+
+<p>It achieves that speed using a local <code>redis</code> database to store metadata like conversations and labels, while storing emails in the common format to flat files, one per email. At the moment, the metadata isn't used by anything, but I plan on implementing some sort of export utility at some point. If you have a use case for exporting this metadata (perhaps to re-import your emails to Google Mail or a similar service) let me know and I'll build it for you!</p>
+
+<h2>Installation</h2>
+
+<p>Currently <code>gmail_safe</code> has two external dependencies you will need to install yourself:</p>
+
+<ul>
+<li><a href="http://nodejs.org/">Node.js 0.6.x</a></li>
+<li><a href="http://redis.io/download">Redis 2.4 or higher</a></li>
+</ul><p>If there is much demand I will probably make available a more complete guide for installing these dependencies - but really, it isn't very hard.</p>
+
+<p>From there, just follow the quick start guide.</p>
+
+<p>Note: be sure to install <code>gmail_safe</code> using <code>npm install -g gmail-safe</code> - without the -g (which tells npm to install the gmail_safe executable globally) or the environment will break and <code>gmail_safe</code> will not function. If you know why, please file an issue to help point me in the right direction.</p>
+
+<h2>FAQ / Troubleshooting</h2>
+
+<ul>
+<li>
+<p>Q: <strong>Help! I accidentally deleted a file / broke the database / etc.!</strong></p>
+
+<p>A: No problem! First, delete the <code>meta</code> folder from within the download
+ directory. Then, re-run <code>gmail_safe</code>. It should fix itself just fine,
+ although you may need to delete the emails too just to be sure. Your
+ call.</p>
+</li>
+<li>
+<p>Q: <strong>How can I run <code>gmail_safe</code> from a cron job?</strong></p>
+
+<p>A: <code>gmail_safe</code> can be very easily stored as a cron job using the <code>-i</code> and
+ <code>-c FILE</code> options, as well as redirecting the output to /dev/null. (Better
+ logging is a planned feature.) Writing the cron job is beyond the scope
+ of this README, but it isn't hard to do. Here is an example config file:</p>
+
+<pre><code> {
+    "username": "your_username@gmail.com",
+    "password": "your_password_OR_app_specific_passphrase"
+ }
+</code></pre>
+</li>
+</ul><h2>Planned Features</h2>
+
+<ul>
+<li>Better backgrounding support (supress stdout &amp; progress bar)</li>
+<li>Metadata transfer/import</li>
+</ul><p>Most of these features are fairly simple to implement - mostly I just need motivation. So if you want this feature (or any other!) just file an issue on github.</p>
+
+<h2>Legal Boilerplate</h2>
+
+<p>This project is Copyright (c) 2012 Erich Blume &lt;<a href="mailto:blume.erich@gmail.com">blume.erich@gmail.com</a>&gt;.</p>
+
+<p>Google and Google Mail are trademarks owned by Google. I am not Google. I do not own these trademarks. Hopefully everyone understands that this modest little app only serves to increase Google Mail's adoption, by whatever small amount.</p>
+
+<p>This project is licensed under the MIT license, which is a permissive open-source license. See the LICENSE file for the full terms of the licensing. If this project didn't come with a LICENSE file, then someone messed up (probably me) and you can get a copy at <a href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a>.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
