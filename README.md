@@ -52,6 +52,8 @@ If there is much demand I will probably make available a more complete guide for
 
 From there, just follow the quick start guide. :)
 
+Note: be sure to install `gmail-safe` using `npm install -g gmail-safe` - without the -g (which tells npm to install the gmail_safe executable globally) or the environment will break and `gmail-safe` will not function. If you know why, please file an issue to help point me in the right direction.
+
 Plannead Features
 -----------------
 
