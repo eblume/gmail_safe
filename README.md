@@ -1,7 +1,7 @@
 Quick Start
 -----------
 
-First, be sure to install [node](http://nodejs.org/) and [redis](http://redis.io/download).
+First, be sure to install [node](http://nodejs.org/) and [redis](http://redis.io/download). Once that's done:
 
     $ npm install -g gmail-safe
     $ gmail_safe ./download/directory -u USERNAME -p PASSWORD --incremental
