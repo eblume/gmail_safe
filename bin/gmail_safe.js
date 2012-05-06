@@ -7,6 +7,7 @@ var gmi = require('gmail').GMailInterface,
   redis_client = require('redis'),
   path = require('path'),
   EE = require('events').EventEmitter,
+  async = require('async'),
   fs = require('node-fs');
 
 var opts = require('nomnom')
@@ -22,24 +23,31 @@ var opts = require('nomnom')
     abbr: 'u',
     help: "Username, an email ending in @gmail.com",
     required: true,
-    type: "string"
+    type: "string",
+    metavar: "USERNAME"
   })
   .option('password',{
     flag: false,
     abbr: 'p',
     help: "Password, or an application-specific password.",
     required: true,
-    type: "string"
+    type: "string",
+    metavar: "PASSWORD"
+  })
+  .option('incremental', {
+    flag: true,
+    abbr: 'i',
+    help: "Only download emails which have not already been downloaded."
   })
   .parse();
 
 
 var mainloop = new EE();
 // Script-level 'globals'. I don't like these, but they seem idiomatic.
-var db = null;
-var redis = null;
-var work_path = null;
-var gm = null;
+var db;
+var redis;
+var work_path;
+var gm;
 
 
 
@@ -51,7 +59,12 @@ process.on('uncaughtException', function(err) {
   mainloop.emit('exit',err);
 });
 
-
+// Create a helper to get to die on errors for callbacks.
+var die = function(err) {
+  if(err) {
+    mainloop.emit('exit',err);
+  }
+}
 
 // For some reason, possibly an error, close it all down.
 // It is safe to call process.exit() here, although note
@@ -62,7 +75,7 @@ process.on('uncaughtException', function(err) {
 // call 'close'.
 //
 // This handler MUST block, and MUST NOT return. IE, it cannot
-// be asynchronous. (For one, there might well not be a next tick.)
+// be asynchronous. (Obviously, as there won't be a next tick.)
 mainloop.once('exit',function(err) {
   // Cleanup
   console.log("Closing connections...");
@@ -81,14 +94,6 @@ mainloop.once('exit',function(err) {
   }
 });
 
-// Create a helper to get to die on errors for callbacks.
-var die = function(err) {
-  if(err) {
-    mainloop.emit('exit',err);
-  }
-}
-
-
 // Main entrant
 mainloop.once('main',function() {
   configure_local_env(opts);
@@ -105,20 +110,41 @@ mainloop.once('main',function() {
 
 // imap_connect - when the 'gm' interface connects to the server
 mainloop.on('imap_connect', function() {
-  var fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
+  db.get('latest_email_date',function(err,result) {
+    mainloop.emit('fetch',result);
+  });
+});
+
+// fetch - after finding the previously stored email date (or none), fetch.
+mainloop.on('fetch',function(previous_email_date) {
+  var fetcher;
   var bar;
+
+  if (opts.incremental && previous_email_date) {
+    // Fetch only the emails since the date stored in redis
+    console.log("Only fetching emails after", previous_email_date);
+    console.log("(Note: due to a small and hard-to-trace bug probably stemming from the curiously hard to define properties of server time, some of these emails might be already downloaded. This shouldn't be an issue.)")
+    fetcher = gm.get({'since':previous_email_date});
+  } else {
+    console.log("Fetching ALL emails (this may take some time)");
+    fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
+  }
 
   fetcher.once('end',function(){
     console.log();
     mainloop.emit('close');
   });
-  fetcher.on('fetching',function(ids) {
-    console.log("Fetching",ids.length,"emails (this may take some time)...");
-    console.log();
-    bar = new ProgressBar('[:bar] :percent (:elapsed/:finish) :eta', {
-      total: ids.length,
-      width: 40,
-    });
+  fetcher.on('fetching',function(ids,cancel) {
+    if (ids.length > 0) {
+      console.log("Fetching ",ids.length,"emails.");
+      bar = new ProgressBar('[:bar] :percent (:elapsed/:finish) :eta', {
+        total: ids.length,
+        width: 40,
+      });
+    } else {
+      console.log("Nothing to fetch.");
+      cancel();
+    }
   });
   fetcher.on('fetched',function(msg){
     bar.tick(1);
@@ -132,6 +158,12 @@ mainloop.on('imap_connect', function() {
       "labels": msg.labels
       // Skip msg.eml to avoid storing the entire email (for now anyway)
     };
+    // For now, we just store each sequential email as the most recent date
+    // without checking to see if it's actually a more recent date. This is
+    // ok because at the moment, the consequence of getting this wrong is
+    // very small - we'd likely only be wrong by one or two emails at most
+    // and the consequence is just downloading two extra emails in that case
+    db.set('latest_email_date',storeobj.date, die);
 
     // I would like to use db.HMSET, but it is being very weird.
     // This needs further investigating. For now, just JSONify it.
@@ -142,10 +174,21 @@ mainloop.on('imap_connect', function() {
 // A 'gentle' start to stopping the program.
 // Success flows through this event.
 mainloop.on('close',function() {
-  db.quit();
-  gm.logout(die);
-  mainloop.emit('exit');
-})
+  async.parallel([
+    function(done) {
+      db.quit(function(err,res) {
+        done(err);
+      });
+    },
+    function(done) {
+      gm.logout(function(err) {
+        done(err);
+      })
+    }
+  ],function(err) {
+    mainloop.emit('exit',err);
+  });
+});
 
 
 
@@ -210,6 +253,7 @@ var configure_local_env = function(opts) {
   // Start up a redis client
   console.log("Starting redis cache...");
   db = redis_client.createClient(36127,"127.0.0.1");
+  db.on("error",die);
 
   // Create a blank gmail object
   gm = new gmi();

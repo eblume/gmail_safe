@@ -1,7 +1,7 @@
 {
   "name": "gmail-safe",
   "preferGlobal": "true",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "Erich Blume <blume.erich@gmail.com>",
   "description": "Intelligent backup client for GMail.",
   "engines": { "node" : ">=0.4.0" },
@@ -21,6 +21,7 @@
     "node-fs": "0.1.x",
     "hiredis": "0.1.x",
     "redis": "0.7.x",
+    "async": "0.1.x",
     "progress2": "0.1.x"
   },
   "devDependencies": {

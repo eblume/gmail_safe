@@ -37,7 +37,7 @@ In that regard, `gmail-safe`:
  - **WILL** support incremental backup. I have a plan to implement this but it isn't in this release yet. If I can get it working correctly, it should be stupidly fast (to the point where it may become my default MUA (mail user agent).
  - Saves meta-data like conversations and labels in a secure, local-only redis database. At this time that data just sort of sits there, but eventually I hope to write tools to let you re-import your mail to Google using this database to preserve labels and threads. For now you can be confident that nothing was lost. Labels and threads do NOT appear in downloaded emails directly as those extensions are not part of the email spec.
  - Is designed from the ground up to be run in the background, eg. as a background (cron) job. (Ok, in this very early release this still needs a tiny bit of work, but it's going to get there very soon.)
- - Supports Google Application-Specific Passwords so people with two-factor authentication can still use it. (This comes *gratis*, it just replaces your normal password.)
+ - Supports Google Application-Specific Passwords so people with two-factor authentication can still use it. (This comes *gratis* with IMAP, it just replaces your normal password.)
 
 Installation
 ------------

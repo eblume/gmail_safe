@@ -5,5 +5,6 @@
 node_modules/*
 npm-debug.log
 
-# I do some testing using a folder called 'tmp'
+# I do some testing using a folder called 'tmp' or 'mail'
 tmp/
+mail/
