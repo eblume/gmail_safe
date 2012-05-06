@@ -46,8 +46,8 @@ Installation
 
 Currently `gmail-safe` has three external dependencies you will need to install yourself:
 
- - [Redis 2.4 or higher](http://redis.io/download)
  - [Node.js 0.6.x](http://nodejs.org/)
+ - [Redis 2.4 or higher](http://redis.io/download)
 
 If there is much demand I will probably make available a more complete guide for installing these dependencies - but really, it isn't very hard.
 
