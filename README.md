@@ -11,14 +11,14 @@ The specified directory will be created with the `0770` permission code if it do
 About
 -----
 
-`gmail_safe` was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that were:
+`gmail_safe` was inspired by a desire to back up my Google Mail. I surveyed some of the options already available but could find none that met all my criteria:
 
- - Decently fast
- - Supported incremental backup
- - Could be run in the background (eg. from a `cron` script)
- - Saved thread information (Google Mail 'conversations')
- - Saved Google Mail labels
- - and Saved attachments & alternate bodies in the standard email format
+ - Run decently fast
+ - Support incremental backup
+ - Can be run in the background (eg. from a `cron` script)
+ - Save thread information (Google Mail 'conversations')
+ - Save Google Mail labels
+ - and Save attachments & alternate bodies in the standard email format
 
 In that regard, `gmail_safe`:
 
