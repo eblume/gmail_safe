@@ -1,10 +1,7 @@
 #!/usr/local/bin/node
 
-
 var gmi = require('gmail').GMailInterface,
   ProgressBar = require('progress2');
-  spawn = require('child_process').spawn,
-  redis_client = require('redis'),
   path = require('path'),
   EE = require('events').EventEmitter,
   async = require('async'),
@@ -59,13 +56,6 @@ if(opts.config) {
 
 
 var mainloop = new EE();
-// Script-level 'globals'. I don't like these, but they seem idiomatic.
-var db;
-var redis;
-var work_path;
-var gm;
-
-
 
 // Hook the process exit patterns to mainloop
 process.on('exit', function() {
@@ -95,9 +85,6 @@ var die = function(err) {
 mainloop.once('exit',function(err) {
   // Cleanup
   console.log("Closing connections...");
-  redis.kill(); // sends SIGTERM
-  db.end(); // Abruptly ends client, even mid-stream. Totally OK, because
-            // the server just died (maybe).
 
   // Quit
   if (err) {
@@ -113,42 +100,47 @@ mainloop.once('exit',function(err) {
 // Main entrant
 mainloop.once('main',function() {
   configure_local_env(opts);
-  // We now have the 'db' redis client, 'work_path', 'gm', and others.
-
   // Connect to the gmail server
   console.log("Connecting to Google Mail...");
+  var gm = new gmi();
   gm.connect(opts.username,opts.password,function() {
     console.log("Connected.");
-    mainloop.emit('imap_connect');
+    mainloop.emit('imap_connect',gm);
   });
 });
 
 
 // imap_connect - when the 'gm' interface connects to the server
-mainloop.on('imap_connect', function() {
-  db.get('latest_email_date',function(err,result) {
-    mainloop.emit('fetch',result);
-  });
+mainloop.on('imap_connect', function(gm) {
+  if (opts.incremental) {
+    fs.readFile(lastfile(),"utf8",function(err,data) {
+      mainloop.emit('fetch',gm,JSON.parse(data));
+    });
+  } else {
+    mainloop.emit('fetch',gm);
+  }
 });
 
-// fetch - after finding the previously stored email date (or none), fetch.
-mainloop.on('fetch',function(previous_email_date) {
+// fetch - after finding the previously stored email id (or none), fetch.
+mainloop.on('fetch',function(gm,previous_email_id) {
   var fetcher;
-  var bar;
+  var bar; // No, like, literally a bar. Not a meta-syntactic variable.
+  var lastid;
 
-  if (opts.incremental && previous_email_date) {
-    // Fetch only the emails since the date stored in redis
-    console.log("Only fetching emails after", previous_email_date);
-    console.log("(Note: due to a small and hard-to-trace bug probably stemming from the curiously hard to define properties of server time, some of these emails might be already downloaded. This shouldn't be an issue.)")
-    fetcher = gm.get({'since':previous_email_date});
+  if (opts.incremental && previous_email_id) {
+    // Fetch only the emails since the given mailbox ID
+    console.log("Only fetching emails after the mailbox ID:", previous_email_id);
+    fetcher = gm.get({'id_gt':previous_email_id});
   } else {
-    console.log("Fetching ALL emails (this may take some time)");
+    console.log("Fetching ALL emails (this may take a while)");
     fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
   }
 
   fetcher.once('end',function(){
     console.log();
-    mainloop.emit('close');
+    var lastfile = path.join(opts.directory,'meta','lastid.txt');
+    fs.writeFile(lastfile,JSON.stringify(lastid),"utf8",die);
+    mainloop.emit('close',gm);
   });
   fetcher.on('fetching',function(ids,cancel) {
     if (ids.length > 0) {
@@ -165,37 +157,28 @@ mainloop.on('fetch',function(previous_email_date) {
   fetcher.on('fetched',function(msg){
     bar.tick(1);
     var emlfile = path.join(opts.directory,msg.id + ".eml");
+    var metafile = path.join(opts.directory,msg.id + ".meta");
+    lastid = msg.boxid > lastid ? msg.boxid : lastid;
     fs.writeFile(emlfile,msg.eml,"utf8",die);
-
     var storeobj = {
       "id": msg.id,
+      "boxid": msg.boxid,
       "thread": msg.thread,
       "date": msg.date,
       "labels": msg.labels
       // Skip msg.eml to avoid storing the entire email (for now anyway)
     };
-    // For now, we just store each sequential email as the most recent date
-    // without checking to see if it's actually a more recent date. This is
-    // ok because at the moment, the consequence of getting this wrong is
-    // very small - we'd likely only be wrong by one or two emails at most
-    // and the consequence is just downloading two extra emails in that case
-    db.set('latest_email_date',storeobj.date, die);
-
-    // I would like to use db.HMSET, but it is being very weird.
-    // This needs further investigating. For now, just JSONify it.
-    db.set(msg.id,JSON.stringify(storeobj),die);
+    fs.writeFile(metafile,JSON.stringify(storeobj),"utf8",die);
   });
 });
 
 // A 'gentle' start to stopping the program.
 // Success flows through this event.
-mainloop.on('close',function() {
+mainloop.on('close',function(gm) {
   async.parallel([
-    function(done) {
-      db.quit(function(err,res) {
-        done(err);
-      });
-    },
+    // Previously there were some other things we did before logging out.
+    // Rather than remove this async.parallel call, I'll leave it in, in
+    // case something in the future needs to be done.
     function(done) {
       gm.logout(function(err) {
         done(err);
@@ -211,68 +194,17 @@ mainloop.on('close',function() {
 // HELPER FUNCTIONS
 
 
-// configure_local_env - make sure that some consistent environment for
-// execution exists, is writable, and open a redis database server and client.
+// Do some basic setup of the work directory
 var configure_local_env = function(opts) {
-  work_path = path.resolve(opts.directory); // Absolute path resolution.
+  var work_path = path.resolve(opts.directory); // Absolute path resolution.
   maybe_create_path(work_path);
   var meta_path = path.join(work_path,"meta/");
   maybe_create_path(meta_path);
-  var conf_path = path.join(meta_path,"store.conf");
+}
 
-  var bindaddr = "127.0.0.1";
-  var port = 36127; // Chosen totally at random. Should become an option.
-
-  if (!path.existsSync(conf_path)) {
-    // This is a very lazy config representation - the config file will
-    // be generated simply by writing one 'option' per line, in the format
-    // 'key value' - that is the key, a space, and the value.
-    // Do with it as you will. Suggestion: use only strings. YMMV otherwise.
-    var config = {
-      "daemonize":"no",
-      "pidfile": "/dev/null", // Won't be used, but I just want to be sure.
-      "bind": bindaddr,
-      "port": port.toString(),
-      "timeout":"20", // We want it to fail fast, rather than linger.
-      "dbfilename": "store.redis",
-      "dir": meta_path,
-      "loglevel": "notice",
-      "logfile": "stdout",
-      "databases": "1",
-      "maxclients": "1",
-      //"maxmemory": "512MB", // hasn't been working well for me.
-      "save 15": "1",
-    }
-
-    // In Python (my nominal language), I would do this using
-    // a nested list comprehension. There is probably a similar
-    // efficient way in JavaScript, but I do not know it (yet).
-    var config_contents = ""
-    for (var key in config) {
-      config_contents += key + " " + config[key] + "\n";
-    }
-
-    fs.writeFileSync(conf_path,config_contents,"utf8");
-  }
-
-  // Start up the redis node
-  redis = spawn("redis-server",[conf_path]);
-  redis.once('exit',function(code,signal) {
-    // Once is important here so that this only triggers the error message
-    // once, and only if there was an error.
-    if (isNull(code) || code != 0 || isNull(signal) || signal != 'SIGTERM') {
-      // Something bad happened.
-      die("Unknown errror, database died. <Code Signal>:"+code+" "+signal);
-    }
-  });
-
-  // Start up a redis client
-  console.log("Starting redis cache...");
-  db = redis_client.createClient(36127,"127.0.0.1");
-  db.on("error",die);
-
-  // Create a blank gmail object
-  gm = new gmi();
+// Construct the path of the lastid file
+var lastfile = function(workdir) {
+  return path.join(workdir,'meta','lastfile.txt');
 }
 
 // Create the path even if it or parts of it exist or don't exist yet,
