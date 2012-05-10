@@ -16,7 +16,7 @@
   },
   "main":"./bin/gmail_safe.js",
   "dependencies": {
-    "gmail": "0.3.x",
+    "gmail": "0.4.x",
     "nomnom": "1.5.x",
     "node-fs": "0.1.x",
     "async": "0.1.x",

@@ -56,13 +56,24 @@ if(opts.config) {
 
 
 var mainloop = new EE();
+// Script globals - breaks re-entrance but this is a standalone script, so ok
+var lastid = 0;
+var gm;
 
 // Hook the process exit patterns to mainloop
-process.on('exit', function() {
-  mainloop.emit('exit');
-});
 process.on('uncaughtException', function(err) {
   mainloop.emit('exit',err);
+});
+
+// Hook SIGINT to do a safer shutdown
+var caught_SIGINT = false;
+process.on('SIGINT', function() {
+  if (caught_SIGINT) {
+    process.exit(1);
+  }
+  caught_SIGINT = true;
+  console.log("Caught SIGINT, shutting down safely. Press CTRL+C again to abort immediatly.");
+  mainloop.emit('close');
 });
 
 // Create a helper to get to die on errors for callbacks.
@@ -102,35 +113,34 @@ mainloop.once('main',function() {
   configure_local_env(opts);
   // Connect to the gmail server
   console.log("Connecting to Google Mail...");
-  var gm = new gmi();
+  gm = new gmi();
   gm.connect(opts.username,opts.password,function() {
     console.log("Connected.");
-    mainloop.emit('imap_connect',gm);
+    mainloop.emit('imap_connect');
   });
 });
 
 
 // imap_connect - when the 'gm' interface connects to the server
-mainloop.on('imap_connect', function(gm) {
-  if (opts.incremental) {
-    fs.readFile(lastfile(),"utf8",function(err,data) {
-      mainloop.emit('fetch',gm,JSON.parse(data));
+mainloop.on('imap_connect', function() {
+  if (opts.incremental && fs.statSync(lastfile(opts.directory))) {
+    fs.readFile(lastfile(opts.directory),"utf8",function(err,data) {
+      mainloop.emit('fetch',JSON.parse(data));
     });
   } else {
-    mainloop.emit('fetch',gm);
+    mainloop.emit('fetch');
   }
 });
 
 // fetch - after finding the previously stored email id (or none), fetch.
-mainloop.on('fetch',function(gm,previous_email_id) {
+mainloop.on('fetch',function(previous_email_id) {
   var fetcher;
   var bar; // No, like, literally a bar. Not a meta-syntactic variable.
-  var lastid;
 
   if (opts.incremental && previous_email_id) {
     // Fetch only the emails since the given mailbox ID
     console.log("Only fetching emails after the mailbox ID:", previous_email_id);
-    fetcher = gm.get({'id_gt':previous_email_id});
+    fetcher = gm.get({'boxid_gt':previous_email_id});
   } else {
     console.log("Fetching ALL emails (this may take a while)");
     fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
@@ -138,9 +148,10 @@ mainloop.on('fetch',function(gm,previous_email_id) {
 
   fetcher.once('end',function(){
     console.log();
-    var lastfile = path.join(opts.directory,'meta','lastid.txt');
-    fs.writeFile(lastfile,JSON.stringify(lastid),"utf8",die);
-    mainloop.emit('close',gm);
+    fs.writeFile(lastfile(opts.directory),JSON.stringify(lastid),"utf8",function(err) {
+      die(err);
+      mainloop.emit('close');
+    });
   });
   fetcher.on('fetching',function(ids,cancel) {
     if (ids.length > 0) {
@@ -159,6 +170,7 @@ mainloop.on('fetch',function(gm,previous_email_id) {
     var emlfile = path.join(opts.directory,msg.id + ".eml");
     var metafile = path.join(opts.directory,msg.id + ".meta");
     lastid = msg.boxid > lastid ? msg.boxid : lastid;
+    console.log(">>>",lastid);
     fs.writeFile(emlfile,msg.eml,"utf8",die);
     var storeobj = {
       "id": msg.id,
@@ -169,22 +181,22 @@ mainloop.on('fetch',function(gm,previous_email_id) {
       // Skip msg.eml to avoid storing the entire email (for now anyway)
     };
     fs.writeFile(metafile,JSON.stringify(storeobj),"utf8",die);
+    fs.writeFile(lastfile(opts.directory),JSON.stringify(lastid),"utf8",die);
   });
 });
 
 // A 'gentle' start to stopping the program.
 // Success flows through this event.
-mainloop.on('close',function(gm) {
+mainloop.on('close',function() {
+  console.log("Shutting down safely...");
   async.parallel([
-    // Previously there were some other things we did before logging out.
-    // Rather than remove this async.parallel call, I'll leave it in, in
-    // case something in the future needs to be done.
     function(done) {
-      gm.logout(function(err) {
-        done(err);
-      })
-    }
-  ],function(err) {
+      fs.writeFile(lastfile(opts.directory),
+        JSON.stringify(lastid),"utf8",done);
+    },
+    function(done) { gm.logout(done); },
+  ],
+  function(err) {
     mainloop.emit('exit',err);
   });
 });
@@ -198,13 +210,11 @@ mainloop.on('close',function(gm) {
 var configure_local_env = function(opts) {
   var work_path = path.resolve(opts.directory); // Absolute path resolution.
   maybe_create_path(work_path);
-  var meta_path = path.join(work_path,"meta/");
-  maybe_create_path(meta_path);
 }
 
 // Construct the path of the lastid file
 var lastfile = function(workdir) {
-  return path.join(workdir,'meta','lastfile.txt');
+  return path.join(workdir,'lastid.txt');
 }
 
 // Create the path even if it or parts of it exist or don't exist yet,
