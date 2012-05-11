@@ -73,6 +73,7 @@ process.on('SIGINT', function() {
   }
   caught_SIGINT = true;
   console.log("Caught SIGINT, shutting down safely. Press CTRL+C again to abort immediatly.");
+  console.log("(If a download is in-progress, you will need to press CTRL+C again.)");
   mainloop.emit('close');
 });
 
@@ -123,7 +124,7 @@ mainloop.once('main',function() {
 
 // imap_connect - when the 'gm' interface connects to the server
 mainloop.on('imap_connect', function() {
-  if (opts.incremental && fs.statSync(lastfile(opts.directory))) {
+  if (opts.incremental && path.existsSync(lastfile(opts.directory))) {
     fs.readFile(lastfile(opts.directory),"utf8",function(err,data) {
       mainloop.emit('fetch',JSON.parse(data));
     });
@@ -138,9 +139,9 @@ mainloop.on('fetch',function(previous_email_id) {
   var bar; // No, like, literally a bar. Not a meta-syntactic variable.
 
   if (opts.incremental && previous_email_id) {
-    // Fetch only the emails since the given mailbox ID
-    console.log("Only fetching emails after the mailbox ID:", previous_email_id);
-    fetcher = gm.get({'boxid_gt':previous_email_id});
+    console.log("Only fetching emails from the UID:", previous_email_id);
+    console.log("(One email will be re-downloaded due to a deficiency in the IMAP standard)");
+    fetcher = gm.get({'uid_from':previous_email_id});
   } else {
     console.log("Fetching ALL emails (this may take a while)");
     fetcher = gm.get(); // Fetch ALL the mails! (apologies to Ms. Allie)
@@ -169,12 +170,11 @@ mainloop.on('fetch',function(previous_email_id) {
     bar.tick(1);
     var emlfile = path.join(opts.directory,msg.id + ".eml");
     var metafile = path.join(opts.directory,msg.id + ".meta");
-    lastid = msg.boxid > lastid ? msg.boxid : lastid;
-    console.log(">>>",lastid);
+    lastid = msg.uid > lastid ? msg.uid : lastid;
     fs.writeFile(emlfile,msg.eml,"utf8",die);
     var storeobj = {
       "id": msg.id,
-      "boxid": msg.boxid,
+      "uid": msg.uid,
       "thread": msg.thread,
       "date": msg.date,
       "labels": msg.labels
