@@ -57,7 +57,6 @@ if(opts.config) {
 
 var mainloop = new EE();
 // Script globals - breaks re-entrance but this is a standalone script, so ok
-var lastid = 0;
 var gm;
 
 // Hook the process exit patterns to mainloop
@@ -111,7 +110,7 @@ mainloop.once('exit',function(err) {
 
 // Main entrant
 mainloop.once('main',function() {
-  configure_local_env(opts);
+  configure_local_env();
   // Connect to the gmail server
   console.log("Connecting to Google Mail...");
   gm = new gmi();
@@ -124,8 +123,8 @@ mainloop.once('main',function() {
 
 // imap_connect - when the 'gm' interface connects to the server
 mainloop.on('imap_connect', function() {
-  if (opts.incremental && path.existsSync(lastfile(opts.directory))) {
-    fs.readFile(lastfile(opts.directory),"utf8",function(err,data) {
+  if (opts.incremental && path.existsSync(lastfile())) {
+    fs.readFile(lastfile(),"utf8",function(err,data) {
       mainloop.emit('fetch',JSON.parse(data));
     });
   } else {
@@ -137,10 +136,10 @@ mainloop.on('imap_connect', function() {
 mainloop.on('fetch',function(previous_email_id) {
   var fetcher;
   var bar; // No, like, literally a bar. Not a meta-syntactic variable.
+  var lastid = 0;
 
   if (opts.incremental && previous_email_id) {
     console.log("Only fetching emails from the UID:", previous_email_id);
-    console.log("(One email will be re-downloaded due to a deficiency in the IMAP standard)");
     fetcher = gm.get({'uid_from':previous_email_id});
   } else {
     console.log("Fetching ALL emails (this may take a while)");
@@ -149,7 +148,7 @@ mainloop.on('fetch',function(previous_email_id) {
 
   fetcher.once('end',function(){
     console.log();
-    fs.writeFile(lastfile(opts.directory),JSON.stringify(lastid),"utf8",function(err) {
+    fs.writeFile(lastfile(),JSON.stringify(lastid),"utf8",function(err) {
       die(err);
       mainloop.emit('close');
     });
@@ -168,8 +167,8 @@ mainloop.on('fetch',function(previous_email_id) {
   });
   fetcher.on('fetched',function(msg){
     bar.tick(1);
-    var emlfile = path.join(opts.directory,msg.id + ".eml");
-    var metafile = path.join(opts.directory,msg.id + ".meta");
+    var emlfile = path.join(workdir(),msg.id + ".eml");
+    var metafile = path.join(metadir(),msg.id + ".meta");
     lastid = msg.uid > lastid ? msg.uid : lastid;
     fs.writeFile(emlfile,msg.eml,"utf8",die);
     var storeobj = {
@@ -181,7 +180,7 @@ mainloop.on('fetch',function(previous_email_id) {
       // Skip msg.eml to avoid storing the entire email (for now anyway)
     };
     fs.writeFile(metafile,JSON.stringify(storeobj),"utf8",die);
-    fs.writeFile(lastfile(opts.directory),JSON.stringify(lastid),"utf8",die);
+    fs.writeFile(lastfile(),JSON.stringify(lastid),"utf8",die);
   });
 });
 
@@ -190,10 +189,7 @@ mainloop.on('fetch',function(previous_email_id) {
 mainloop.on('close',function() {
   console.log("Shutting down safely...");
   async.parallel([
-    function(done) {
-      fs.writeFile(lastfile(opts.directory),
-        JSON.stringify(lastid),"utf8",done);
-    },
+    // Nothing parallel right now - but I'll leave this in for later
     function(done) { gm.logout(done); },
   ],
   function(err) {
@@ -207,14 +203,24 @@ mainloop.on('close',function() {
 
 
 // Do some basic setup of the work directory
-var configure_local_env = function(opts) {
-  var work_path = path.resolve(opts.directory); // Absolute path resolution.
-  maybe_create_path(work_path);
+var configure_local_env = function() {
+  maybe_create_path(workdir());
+  maybe_create_path(metadir());
+}
+
+// Construct the path of the work directory
+var workdir = function() {
+  return path.resolve(opts.directory)
+}
+
+// Construct the path of the meta directory
+var metadir = function() {
+  return path.join(workdir(),'.meta')
 }
 
 // Construct the path of the lastid file
-var lastfile = function(workdir) {
-  return path.join(workdir,'lastid.txt');
+var lastfile = function() {
+  return path.join(metadir(),'lastid.txt');
 }
 
 // Create the path even if it or parts of it exist or don't exist yet,
