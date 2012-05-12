@@ -137,6 +137,10 @@ mainloop.on('fetch',function(previous_email_id) {
   var fetcher;
   var bar; // No, like, literally a bar. Not a meta-syntactic variable.
   var lastid = 0;
+  var writequeue = async.queue(function(task,cb){
+    fs.writeFile(task.file,task.data,"utf8",die);
+    cb();
+  }, 255);
 
   if (opts.incremental && previous_email_id) {
     console.log("Only fetching emails from the UID:", previous_email_id);
@@ -148,10 +152,12 @@ mainloop.on('fetch',function(previous_email_id) {
 
   fetcher.once('end',function(){
     console.log();
-    fs.writeFile(lastfile(),JSON.stringify(lastid),"utf8",function(err) {
-      die(err);
+    if (lastid > 0) {
+      writequeue.push({file:lastfile(),data:JSON.stringify(lastid)},die);
+      writequeue.drain = function() {mainloop.emit('close');};
+    } else {
       mainloop.emit('close');
-    });
+    }
   });
   fetcher.on('fetching',function(ids,cancel) {
     if (ids.length > 0) {
@@ -170,7 +176,6 @@ mainloop.on('fetch',function(previous_email_id) {
     var emlfile = path.join(workdir(),msg.id + ".eml");
     var metafile = path.join(metadir(),msg.id + ".meta");
     lastid = msg.uid > lastid ? msg.uid : lastid;
-    fs.writeFile(emlfile,msg.eml,"utf8",die);
     var storeobj = {
       "id": msg.id,
       "uid": msg.uid,
@@ -179,8 +184,12 @@ mainloop.on('fetch',function(previous_email_id) {
       "labels": msg.labels
       // Skip msg.eml to avoid storing the entire email (for now anyway)
     };
-    fs.writeFile(metafile,JSON.stringify(storeobj),"utf8",die);
-    fs.writeFile(lastfile(),JSON.stringify(lastid),"utf8",die);
+    write_tasks = [
+      {file:emlfile, data:msg.eml},
+      {file:metafile, data:JSON.stringify(storeobj)},
+      {file:lastfile(), data:JSON.stringify(lastid)}
+    ];
+    writequeue.push(write_tasks,die);
   });
 });
 
