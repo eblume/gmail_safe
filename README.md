@@ -1,7 +1,7 @@
 Quick Start
 -----------
 
-First, be sure to install [node](http://nodejs.org/) and [redis](http://redis.io/download). Once that's done:
+First, be sure to install [node](http://nodejs.org/). Once that's done:
 
     $ npm install -g gmail-safe
     $ gmail_safe ./download/directory -u USERNAME -p PASSWORD --incremental
@@ -22,17 +22,12 @@ gmail_safe was inspired by a desire to back up my Google Mail. I surveyed some o
 
 gmail_safe does all that, and it does it fast (**I get about 20 emails per second**) and without using much CPU or RAM. Perfect for a cron job.
 
-It achieves that speed using a local `redis` database to store metadata like conversations and labels, while storing emails in the common format to flat files, one per email. At the moment, the metadata isn't used by anything, but I plan on implementing some sort of export utility at some point. If you have a use case for exporting this metadata (perhaps to re-import your emails to Google Mail or a similar service) let me know and I'll build it for you!
-
 Installation
 ------------
 
-Currently `gmail_safe` has two external dependencies you will need to install yourself:
+Currently `gmail_safe` has an external dependency you will need to install yourself:
 
  - [Node.js 0.6.x](http://nodejs.org/)
- - [Redis 2.4 or higher](http://redis.io/download)
-
-If there is much demand I will probably make available a more complete guide for installing these dependencies - but really, it isn't very hard.
 
 From there, just follow the quick start guide.
 
@@ -40,13 +35,6 @@ Note: be sure to install `gmail_safe` using `npm install -g gmail-safe` - withou
 
 FAQ / Troubleshooting
 ---------------------
-
-- Q: **Help! I accidentally deleted a file / broke the database / etc.!**
-
-  A: No problem! First, delete the `meta` folder from within the download
-     directory. Then, re-run `gmail_safe`. It should fix itself just fine,
-     although you may need to delete the emails too just to be sure. Your
-     call.
 
 - Q: **How can I run `gmail_safe` from a cron job?**
 
