@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 var gmi = require('gmail').GMailInterface,
   ProgressBar = require('progress2');
