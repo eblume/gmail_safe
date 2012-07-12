@@ -11,6 +11,10 @@
     "email": "blume.erich@gmail.com",
     "web": "github.com/eblume"
   }],
+  "repository": {
+    "type":"git",
+    "url":"https://github.com/eblume/gmail_safe.git"
+  },
   "bin": {
     "gmail_safe": "./bin/gmail_safe.js"
   },
