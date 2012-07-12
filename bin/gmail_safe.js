@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+var WRITE_LIMIT = 50;
+
 var gmi = require('gmail').GMailInterface,
   ProgressBar = require('progress2');
   path = require('path'),
@@ -140,7 +142,7 @@ mainloop.on('fetch',function(previous_email_id) {
   var writequeue = async.queue(function(task,cb){
     fs.writeFile(task.file,task.data,"utf8",die);
     cb();
-  }, 255);
+  }, WRITE_LIMIT);
 
   if (opts.incremental && previous_email_id) {
     console.log("Only fetching emails from the UID:", previous_email_id);
