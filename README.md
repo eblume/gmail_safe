@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/eblume/gmail_safe.png)](http://travis-ci.org/eblume/gmail_safe)
 Quick Start
 -----------
 
