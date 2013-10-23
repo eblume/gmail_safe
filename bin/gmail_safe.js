@@ -3,7 +3,7 @@
 var WRITE_LIMIT = 50;
 
 var gmi = require('gmail').GMailInterface,
-  ProgressBar = require('progress2');
+  ProgressBar = require('progress2'),
   path = require('path'),
   EE = require('events').EventEmitter,
   async = require('async'),
