@@ -3,7 +3,7 @@
 var WRITE_LIMIT = 50;
 
 var gmi = require('gmail').GMailInterface,
-  ProgressBar = require('progress2');
+  ProgressBar = require('progress2'),
   path = require('path'),
   EE = require('events').EventEmitter,
   async = require('async'),
@@ -83,7 +83,7 @@ var die = function(err) {
   if(err) {
     mainloop.emit('exit',err);
   }
-}
+};
 
 // For some reason, possibly an error, close it all down.
 // It is safe to call process.exit() here, although note
@@ -140,8 +140,15 @@ mainloop.on('fetch',function(previous_email_id) {
   var bar; // No, like, literally a bar. Not a meta-syntactic variable.
   var lastid = 0;
   var writequeue = async.queue(function(task,cb){
-    fs.writeFile(task.file,task.data,"utf8",die);
-    cb();
+    fs.writeFile(task.file,task.data,"utf8",function(err) {
+      // cb can take an error but the async docs don't reveal what it does with
+      // them. Since we already have a 'die' handler, we'll just use that.
+      if (err) {
+        die(err);
+      } else {
+        cb();
+      }
+    });
   }, WRITE_LIMIT);
 
   if (opts.incremental && previous_email_id) {
@@ -217,22 +224,22 @@ mainloop.on('close',function() {
 var configure_local_env = function() {
   maybe_create_path(workdir());
   maybe_create_path(metadir());
-}
+};
 
 // Construct the path of the work directory
 var workdir = function() {
-  return path.resolve(opts.directory)
-}
+  return path.resolve(opts.directory);
+};
 
 // Construct the path of the meta directory
 var metadir = function() {
-  return path.join(workdir(),'.meta')
-}
+  return path.join(workdir(),'.meta');
+};
 
 // Construct the path of the lastid file
 var lastfile = function() {
   return path.join(metadir(),'lastid.txt');
-}
+};
 
 // Create the path even if it or parts of it exist or don't exist yet,
 // Or maybe don't create it if it already exists completely.
@@ -244,7 +251,7 @@ var maybe_create_path = function (path) {
   } catch (e) {
     // Do nothing - the dir already existed.
   }
-}
+};
 
 
 
