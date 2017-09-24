@@ -125,7 +125,7 @@ mainloop.once('main',function() {
 
 // imap_connect - when the 'gm' interface connects to the server
 mainloop.on('imap_connect', function() {
-  if (opts.incremental && path.existsSync(lastfile())) {
+  if (opts.incremental && fs.existsSync(lastfile())) {
     fs.readFile(lastfile(),"utf8",function(err,data) {
       mainloop.emit('fetch',JSON.parse(data));
     });
