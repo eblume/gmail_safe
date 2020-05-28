@@ -1,3 +1,8 @@
+Project Abandoned
+-----------------
+
+With apologies, this project has long since been abandoned. Please file an issue if you would like to discuss the future of the project.
+
 Quick Start
 -----------
 
